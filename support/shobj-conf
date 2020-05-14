@@ -552,6 +552,17 @@ mingw*)
 	fi
 	;;
 
+os2*)
+	SHOBJ_LD='$(CC)'
+	SHOBJ_LDFLAGS='-Zdll'
+	SHLIB_LIBSUFF='dll'
+	SHLIB_LIBVERSION='$(SHLIB_MAJOR).$(SHLIB_LIBSUFF)'
+	SHLIB_LIBS='$(TERMCAP_LIB)'
+
+	SHLIB_DOT=
+	SHLIB_LIBPREF=
+	;;
+
 #
 # Rely on correct gcc configuration for everything else
 #

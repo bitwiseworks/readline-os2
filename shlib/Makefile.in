@@ -118,8 +118,16 @@ CCFLAGS = $(DEFS) $(LOCAL_DEFS) $(INCLUDES) $(CPPFLAGS) $(LOCAL_CFLAGS) $(CFLAGS
 
 # The name of the main library target.
 
+ifeq ($(shell uname -s),OS/2)
+VENDOR ?=community
+BUILD_INFO=\#\#1\#\# $(shell date +'%d %b %Y %H:%M:%S')     $(shell uname -n)
+BUILDLEVEL_INFO=@\#$(VENDOR):$(PACKAGE_VERSION)\#@$(BUILD_INFO)::::0::
+SHARED_READLINE = $(SHLIB_LIBPREF)readln$(SHLIB_DOT)$(SHLIB_LIBVERSION)
+SHARED_HISTORY = $(SHLIB_LIBPREF)histor$(SHLIB_DOT)$(SHLIB_LIBVERSION)
+else
 SHARED_READLINE = $(SHLIB_LIBPREF)readline$(SHLIB_DOT)$(SHLIB_LIBVERSION)
 SHARED_HISTORY = $(SHLIB_LIBPREF)history$(SHLIB_DOT)$(SHLIB_LIBVERSION)
+endif
 SHARED_LIBS = $(SHARED_READLINE) $(SHARED_HISTORY)
 
 # The C code source files for this library.
@@ -172,6 +180,31 @@ unsupported:
 	@echo "Please send the changes you made to bash-maintainers@gnu.org"
 	@echo "for inclusion in future bash and readline releases."
 
+ifeq ($(shell uname -s),OS/2)
+$(SHARED_READLINE):	$(SHARED_OBJ) libreadline.def
+	$(RM) $@
+	$(SHOBJ_LD) ${SHOBJ_LDFLAGS} ${SHLIB_XLDFLAGS} -o $@ $(SHARED_OBJ) libreadline.def $(SHLIB_LIBS)
+	emximp -o libreadline_dll.a $(SHARED_READLINE)
+
+$(SHARED_HISTORY):	$(SHARED_HISTOBJ) xmalloc.so xfree.so libhistory.def
+	$(RM) $@
+	$(SHOBJ_LD) ${SHOBJ_LDFLAGS} ${SHLIB_XLDFLAGS} -o $@ $(SHARED_HISTOBJ) xmalloc.so xfree.so libhistory.def $(SHLIB_LIBS)
+	emximp -o libhistory_dll.a $(SHARED_HISTORY)
+
+libreadline.def:
+	@echo "LIBRARY $(SHARED_READLINE) INITINSTANCE TERMINSTANCE" > $@
+	@echo "DESCRIPTION \"$(BUILDLEVEL_INFO)@@libreadline\"" >> $@
+	@echo "DATA MULTIPLE" >> $@
+	@echo "EXPORTS" >> $@
+	emxexp $(SHARED_OBJ) >> $@
+
+libhistory.def:
+	@echo "LIBRARY $(SHARED_HISTORY) INITINSTANCE TERMINSTANCE" > $@
+	@echo "DESCRIPTION \"$(BUILDLEVEL_INFO)@@libhistory\"" >> $@
+	@echo "DATA MULTIPLE" >> $@
+	@echo "EXPORTS" >> $@
+	emxexp $(SHARED_HISTOBJ) xmalloc.so xfree.so >> $@
+else
 $(SHARED_READLINE):	$(SHARED_OBJ)
 	$(RM) $@
 	$(SHOBJ_LD) ${SHOBJ_LDFLAGS} ${SHLIB_XLDFLAGS} -o $@ $(SHARED_OBJ) $(SHLIB_LIBS)
@@ -179,6 +212,7 @@ $(SHARED_READLINE):	$(SHARED_OBJ)
 $(SHARED_HISTORY):	$(SHARED_HISTOBJ) xmalloc.so xfree.so
 	$(RM) $@
 	$(SHOBJ_LD) ${SHOBJ_LDFLAGS} ${SHLIB_XLDFLAGS} -o $@ $(SHARED_HISTOBJ) xmalloc.so xfree.so $(SHLIB_LIBS)
+endif
 
 # Since tilde.c is shared between readline and bash, make sure we compile 
 # it with the right flags when it's built as part of readline
