@@ -92,6 +92,22 @@ cygwin*|mingw*)
 		${echo} ${RM} ${INSTALLDIR}/${IMPLIBNAME}
 	fi ;;
 
+os2*)
+  case "$LIBNAME" in
+   histor*)
+   IMPLIBNAME="libhistory_dll.a"
+   ;;
+   readln*)
+   IMPLIBNAME="libreadline_dll.a"
+   ;;
+  esac
+	if [ -z "$uninstall" ]; then
+		chmod 755 ${INSTALLDIR}/${LIBNAME}
+		${echo} eval ${INSTALLPROG} ${IMPLIBNAME} \
+			${INSTALLDIR}/${IMPLIBNAME}
+	else
+		${echo} ${RM} ${INSTALLDIR}/${IMPLIBNAME}
+	fi ;;
 *)	;;
 esac
 
@@ -194,7 +210,7 @@ hpux1*)
 	fi
 	;;
 
-cygwin*|mingw*)
+cygwin*|mingw*|os2*)
 	# Links to .dlls don't work.  Hence shobj-conf used DLLVERSION.dll
 	# instead of so.SHLIB_MAJOR.SHLIB_MINOR.  The postinstall above
 	# took care of everything else.
