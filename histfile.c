@@ -58,7 +58,7 @@
 
 #include <ctype.h>
 
-#if defined (__EMX__)
+#if defined (__EMX__) && !defined(__LIBCN__)
 #  undef HAVE_MMAP
 #endif
 
