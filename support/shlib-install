@@ -71,7 +71,7 @@ fi
 # Cygwin installs both a dll (which must go in $BINDIR) and an implicit
 # link library (in $libdir)
 case "$host_os" in
-hpux*|darwin*|macosx*|linux*|solaris2*)
+hpux*|darwin*|macosx*|linux*|solaris2*|os2*)
 	if [ -z "$uninstall" ]; then
 		chmod 755 ${INSTALLDIR}/${LIBNAME}
 	fi ;;
@@ -92,22 +92,6 @@ cygwin*|mingw*)
 		${echo} ${RM} ${INSTALLDIR}/${IMPLIBNAME}
 	fi ;;
 
-os2*)
-  case "$LIBNAME" in
-   histor*)
-   IMPLIBNAME="libhistory_dll.a"
-   ;;
-   readln*)
-   IMPLIBNAME="libreadline_dll.a"
-   ;;
-  esac
-	if [ -z "$uninstall" ]; then
-		chmod 755 ${INSTALLDIR}/${LIBNAME}
-		${echo} eval ${INSTALLPROG} ${IMPLIBNAME} \
-			${INSTALLDIR}/${IMPLIBNAME}
-	else
-		${echo} ${RM} ${INSTALLDIR}/${IMPLIBNAME}
-	fi ;;
 *)	;;
 esac
 
