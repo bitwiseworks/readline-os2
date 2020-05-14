@@ -76,6 +76,10 @@ extern int errno;
 #  define O_NDELAY O_NONBLOCK	/* Posix style */
 #endif
 
+#if defined(__LIBCN__)
+int waiting_char = -1;
+#endif
+
 #if defined (HAVE_PSELECT)
 extern sigset_t _rl_orig_sigset;
 #endif
@@ -209,6 +213,19 @@ static int
 rl_gather_tyi (void)
 {
   int tty;
+#if defined (__LIBCN__)
+  tty = fileno (rl_instream);
+  if (isatty (tty) && (waiting_char = _read_kbd(0, 0, 0)) != -1 && ibuffer_space ())
+    {
+      int i;
+      i = (*rl_getc_function) (rl_instream);
+      rl_stuff_char (i);
+      return 1;
+    }
+  return 0;
+
+#else // __LIBCN__
+
   register int tem, result;
   int chars_avail, k;
   char input;
@@ -306,6 +323,7 @@ rl_gather_tyi (void)
     }
 
   return 1;
+#endif // __LIBCN__
 }
 
 int
@@ -328,6 +346,13 @@ rl_set_keyboard_input_timeout (int u)
 int
 _rl_input_available (void)
 {
+#if defined (__LIBCN__)
+  int tty;
+  tty = fileno (rl_instream);
+  if (isatty (tty) && (waiting_char = _read_kbd(0, 0, 0)) != -1)
+    return 1;
+#else // __LIBCN__
+
 #if defined(HAVE_SELECT)
   fd_set readfds, exceptfds;
   struct timeval timeout;
@@ -364,6 +389,7 @@ _rl_input_available (void)
     return (_kbhit ());
 #endif
 
+#endif // __LIBCN__
   return 0;
 }
 
@@ -506,6 +532,51 @@ rl_getc (FILE *stream)
 {
   int result;
   unsigned char c;
+#if defined (__LIBCN__)
+  if (isatty (fileno (stream)))
+    {
+      static const char *esq_seq[]=
+        { "\033[A", "\033[B", "\033[C", "\033[D", "\033[H", "\033[F",
+        "\033[4h" };
+      static const char *esq= NULL;
+      if (esq)
+        {
+          c = *esq++;
+          if (*esq == 0)
+            esq = NULL;
+        } else {
+          while(1)
+            {
+              result = _read_kbd (0, 1, 0);
+              if (result == 0)
+                {
+                  int no;
+                  result=  _read_kbd (0, 1, 0);
+                  switch(result)
+                    {
+                      case 'H': no= 0; break; // Arrow Up
+                      case 'P': no= 1; break; // Arrow Down
+                      case 'M': no= 2; break; // Arrow Left
+                      case 'K': no= 3; break; // Arrow Right
+                      case 'G': no= 4; break; // Home key
+                      case 'O': no= 5; break; // End key
+                      case 'R': no= 6; break; // Insert key
+                      default: continue;
+                    }
+                  esq = esq_seq[no];
+                  c = *esq++;
+                  break;
+                } else {
+                  if(result == 0x1A) return (EOF); // Ctrl-Z
+                  c= result;
+                  break;
+                }
+            }
+        }
+        return (c);
+    }
+#else // __LIBCN__
+
 #if defined (HAVE_PSELECT)
   sigset_t empty_set;
   fd_set readfds;
@@ -613,6 +684,7 @@ handle_error:
       if (rl_signal_event_hook)
 	(*rl_signal_event_hook) ();
     }
+#endif // __LIBCN__
 }
 
 #if defined (HANDLE_MULTIBYTE)
