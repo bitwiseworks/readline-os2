@@ -194,14 +194,14 @@ $(SHARED_HISTORY):	$(SHARED_HISTOBJ) xmalloc.so xfree.so libhistory.def
 	emximp -o $(SHARED_HISTORY_IMP) $(SHARED_HISTORY)
 
 libreadline.def:
-	@echo "LIBRARY $(SHARED_READLINE) INITINSTANCE TERMINSTANCE" > $@
+	@echo "LIBRARY $(SHARED_READLINE) INITINSTANCE TERMINSTANCE" | sed -e 's/.dll//' > $@
 	@echo "DESCRIPTION \"$(BUILDLEVEL_INFO)@@libreadline\"" >> $@
 	@echo "DATA MULTIPLE" >> $@
 	@echo "EXPORTS" >> $@
 	emxexp $(SHARED_OBJ) >> $@
 
 libhistory.def:
-	@echo "LIBRARY $(SHARED_HISTORY) INITINSTANCE TERMINSTANCE" > $@
+	@echo "LIBRARY $(SHARED_HISTORY) INITINSTANCE TERMINSTANCE" | sed -e 's/.dll//' > $@
 	@echo "DESCRIPTION \"$(BUILDLEVEL_INFO)@@libhistory\"" >> $@
 	@echo "DATA MULTIPLE" >> $@
 	@echo "EXPORTS" >> $@
