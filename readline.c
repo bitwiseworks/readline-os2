@@ -1288,6 +1288,10 @@ bind_arrow_keys_internal (Keymap map)
   rl_bind_keyseq_if_unbound ("\033[D", rl_backward_char);
   rl_bind_keyseq_if_unbound ("\033[H", rl_beg_of_line);
   rl_bind_keyseq_if_unbound ("\033[F", rl_end_of_line);
+#if defined (__LIBCN__)
+  rl_bind_keyseq_if_unbound ("\033[R", rl_overwrite_mode);
+  rl_bind_keyseq_if_unbound ("\033[S", rl_delete);
+#endif
 
   rl_bind_keyseq_if_unbound ("\033OA", rl_get_previous_history);
   rl_bind_keyseq_if_unbound ("\033OB", rl_get_next_history);

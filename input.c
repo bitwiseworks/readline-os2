@@ -537,8 +537,8 @@ rl_getc (FILE *stream)
     {
       static const char *esq_seq[]=
         { "\033[A", "\033[B", "\033[C", "\033[D", "\033[H", "\033[F",
-        "\033[4h" };
-      static const char *esq= NULL;
+        "\033[R", "\033[S" };
+      static const char *esq = NULL;
       if (esq)
         {
           c = *esq++;
@@ -551,7 +551,7 @@ rl_getc (FILE *stream)
               if (result == 0)
                 {
                   int no;
-                  result=  _read_kbd (0, 1, 0);
+                  result =  _read_kbd (0, 1, 0);
                   switch(result)
                     {
                       case 'H': no= 0; break; // Arrow Up
@@ -561,14 +561,16 @@ rl_getc (FILE *stream)
                       case 'G': no= 4; break; // Home key
                       case 'O': no= 5; break; // End key
                       case 'R': no= 6; break; // Insert key
+                      case 'S': no= 7; break; // Del key 
                       default: continue;
                     }
                   esq = esq_seq[no];
                   c = *esq++;
                   break;
                 } else {
-                  if(result == 0x1A) return (EOF); // Ctrl-Z
-                  c= result;
+                  if(result == 0x1A)
+                    return (EOF); // Ctrl-Z
+                  c = result;
                   break;
                 }
             }
