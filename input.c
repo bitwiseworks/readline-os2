@@ -102,6 +102,8 @@ static int _keyboard_input_timeout = 100000;		/* 0.1 seconds; it's in usec */
 static int ibuffer_space PARAMS((void));
 static int rl_get_char PARAMS((int *));
 static int rl_gather_tyi PARAMS((void));
+int rl_stuff_char PARAMS((int key));
+
 
 /* Windows isatty returns true for every character device, including the null
    device, so we need to perform additional checks. */
@@ -217,9 +219,8 @@ rl_gather_tyi (void)
   tty = fileno (rl_instream);
   if (isatty (tty) && (waiting_char = _read_kbd(0, 0, 0)) != -1 && ibuffer_space ())
     {
-      int i;
-      i = (*rl_getc_function) (rl_instream);
-      rl_stuff_char (i);
+      rl_stuff_char (waiting_char);
+      waiting_char = -1;
       return 1;
     }
   return 0;
@@ -349,8 +350,11 @@ _rl_input_available (void)
 #if defined (__LIBCN__)
   int tty;
   tty = fileno (rl_instream);
-  if (isatty (tty) && (waiting_char = _read_kbd(0, 0, 0)) != -1)
+  if (isatty (tty) && (waiting_char = _read_kbd(0, 0, 0)) != -1) {
+    rl_stuff_char (waiting_char);
+    waiting_char = -1;
     return 1;
+  }
 #else // __LIBCN__
 
 #if defined(HAVE_SELECT)
